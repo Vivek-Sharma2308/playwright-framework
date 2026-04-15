@@ -1,8 +1,10 @@
 // src/pages/SearchPage.ts
-import { Page } from '@playwright/test';
+//import { Page } from '@playwright/test';
 
-export class SearchPage {
-  constructor(private page: Page) {}
+import { BasePage } from './BasePage';
+
+export class SearchPage extends BasePage{
+  //constructor(private page: Page) {}
 
   async searchProduct(product: string) {
     await this.page.getByLabel(/Search Amazon.in/).click();

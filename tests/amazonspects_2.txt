@@ -1,0 +1,62 @@
+// tests/amazon.spec.ts
+import { test, expect } from '@playwright/test';
+import { LoginPage } from '@pages/LoginPage';
+import { SearchPage } from '@pages/SearchPage';
+import { CartPage } from '@pages/CartPage';
+import { user } from '@data/userData';
+import { BasePage } from '@pages/BasePage';
+import products from '@data/amazonData.json';
+import { Locators } from '@utils/selectors';
+
+test.describe('Amazon E2E Flow - Data Driven', () => {
+
+  test.describe.configure({ mode: 'serial' });
+
+  test.setTimeout(60000);
+
+  for (const product of products.products) {
+
+    test(`Add product to cart: ${product.name}`, async ({ page, context }) => {
+
+      const basePage = new BasePage(page);
+      const loginPage = new LoginPage(page);
+      const searchPage = new SearchPage(page);
+      const cartPage = new CartPage(page);
+
+      await basePage.navigate(user.user.url);
+
+      // Login
+      await loginPage.getTitle();
+      await loginPage.clickSignIn();
+      await loginPage.loginWithPassword(user.user.email, user.user.password);
+
+      await expect(page).toHaveTitle(/Amazon/);
+
+      // Cart count before
+      const initialCount = await cartPage.getCartCount();
+
+      console.log("Initial cart count : ", initialCount);
+
+      // Search & open product
+      await searchPage.searchProduct(product.name);
+      const productPage = await searchPage.openFirstProduct(context, Locators.productLink(product.productPath));
+
+      await productPage.bringToFront();
+  
+      await productPage.getByRole('button', { name: 'Add to cart'}).first().click();
+
+      // Back to main page
+      await page.bringToFront();
+
+      const newCount = await cartPage.waitForCartUpdate(initialCount);
+
+      console.log("new cart count : ", newCount);
+
+      expect(newCount).toBeGreaterThan(initialCount);
+
+      // Cleanup
+      await cartPage.openCart();
+      await cartPage.deleteItem();
+    });
+  }
+});

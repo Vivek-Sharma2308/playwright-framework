@@ -11,4 +11,16 @@ export class BasePage {
   async getTitle() {
     return await this.page.title();
   }
+
+  async waitForPageLoad() {
+    await this.page.waitForLoadState('domcontentloaded');
+  }
+
+  async click(locator: string) {
+    await this.page.locator(locator).click();
+  }
+
+  async fill(locator: string, value: string) {
+    await this.page.locator(locator).fill(value);
+  }
 }
